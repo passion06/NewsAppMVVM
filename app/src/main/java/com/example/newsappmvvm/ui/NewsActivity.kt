@@ -3,9 +3,9 @@ package com.example.newsappmvvm.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -35,10 +34,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.newsappmvvm.R
 import com.example.newsappmvvm.data.model.News
 import com.example.newsappmvvm.ui.navigation.BottomTab
@@ -122,25 +126,45 @@ fun AddToSaved(){
 fun TodayNews(newsViewModel: NewsViewModel) {
     val newsArticles by newsViewModel.newsItems.observeAsState(emptyList())
 
-    Text("Today's News", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
-    Spacer(modifier = Modifier.height(16.dp))
-    LazyColumn {
+    Text("Today's News", textAlign = TextAlign.Center, style = MaterialTheme.typography.titleLarge, modifier = Modifier
+        .padding(bottom = 20.dp)
+        .fillMaxWidth())
+    Spacer(modifier = Modifier
+        .height(5.dp)
+        .padding(bottom = 5.dp))
+    LazyColumn(modifier = Modifier.padding(start = 5.dp, top= 20.dp)) {
         items(items = newsArticles) { newsArticle ->
             NewsItem(newsArticle)
         }
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun NewsItem(newsArticle: News) {
-    Spacer(modifier = Modifier.height(10.dp).padding(5.dp))
+    val uriHandler = LocalUriHandler.current
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(top = 16.dp)){
+        .padding(all = 5.dp)){
         Text(newsArticle.title, style= MaterialTheme.typography.titleMedium)
-        Text(newsArticle.url, color=Color(0xFF1A73E8), textDecoration = TextDecoration.Underline)
+//        GlideImage(
+//            model = { newsArticle.urlToImage },
+//            contentDescription = newsArticle.title,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(200.dp),
+//            contentScale = ContentScale.Crop
+//        )
+        AsyncImage(
+            model = newsArticle.urlToImage,
+            contentDescription = newsArticle.title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentScale = ContentScale.Crop)
+        Text(newsArticle.url, color=Color(0xFF1A73E8), textDecoration = TextDecoration.Underline, modifier = Modifier.clickable{uriHandler.openUri(newsArticle.url)})
         Text(newsArticle.description, style = MaterialTheme.typography.bodyMedium)
-        Divider(thickness = 1.dp)
+        Divider(thickness = 1.dp, modifier = Modifier.padding(top=5.dp))
     }
 }
 

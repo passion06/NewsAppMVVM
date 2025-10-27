@@ -3,7 +3,7 @@ package com.example.newsappmvvm.data.model
 import com.google.gson.annotations.SerializedName
 
 
-data class News(val title:String, val description: String, val url:String, @SerializedName("publishedAt") val date: String)
+data class News(val title:String, val description: String, val url:String, val urlToImage:String, @SerializedName("publishedAt") val date: String)
 
 data class Article(val source:Source, val author: String, val title: String, val description: String, val url: String, val urlToImage: String, @SerializedName("publishedAt") val publishedDate: String, val content: String)
 
