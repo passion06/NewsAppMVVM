@@ -127,12 +127,9 @@ fun TodayNews(newsViewModel: NewsViewModel) {
     val newsArticles by newsViewModel.newsItems.observeAsState(emptyList())
 
     Text("Today's News", textAlign = TextAlign.Center, style = MaterialTheme.typography.titleLarge, modifier = Modifier
-        .padding(bottom = 20.dp)
+        .padding(all = 20.dp)
         .fillMaxWidth())
-    Spacer(modifier = Modifier
-        .height(5.dp)
-        .padding(bottom = 5.dp))
-    LazyColumn(modifier = Modifier.padding(start = 5.dp, top= 20.dp)) {
+    LazyColumn(modifier = Modifier.padding(start = 5.dp, top= 70.dp)) {
         items(items = newsArticles) { newsArticle ->
             NewsItem(newsArticle)
         }
@@ -164,7 +161,7 @@ fun NewsItem(newsArticle: News) {
             contentScale = ContentScale.Crop)
         Text(newsArticle.url, color=Color(0xFF1A73E8), textDecoration = TextDecoration.Underline, modifier = Modifier.clickable{uriHandler.openUri(newsArticle.url)})
         Text(newsArticle.description, style = MaterialTheme.typography.bodyMedium)
-        Divider(thickness = 1.dp, modifier = Modifier.padding(top=5.dp))
+        Divider(thickness = 1.dp, modifier = Modifier.padding(top=15.dp))
     }
 }
 
