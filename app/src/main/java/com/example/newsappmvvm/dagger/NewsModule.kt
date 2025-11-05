@@ -34,7 +34,6 @@ class NewsModule {
     @Provides
     @Singleton
     fun provideRetrofitInstance(): Retrofit {
-        Log.d("NetworkModule", "Retrofit created")
         return Retrofit.Builder()
             .baseUrl("https://newsapi.org/v2/")
             .addConverterFactory(GsonConverterFactory.create())

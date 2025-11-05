@@ -22,7 +22,8 @@ class NewsRepository @Inject constructor(private val api: NewsAPI) {
                     description = it.description,
                     url = it.url,
                     urlToImage = it.urlToImage,
-                    date = it.publishedDate
+                    date = it.publishedDate?:"unknownDate",
+                    content = it.content
                 )
             }
             emit(newsList)

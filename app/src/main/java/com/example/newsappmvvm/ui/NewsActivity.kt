@@ -37,9 +37,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -49,6 +51,7 @@ import com.example.newsappmvvm.ui.navigation.BottomTab
 import com.example.newsappmvvm.view.ui.theme.NewsAppMVVMTheme
 import com.example.newsappmvvm.viewmodel.NewsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.newsappmvvm.ui.navigation.NewsNavGraph
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -56,14 +59,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val viewModel: NewsViewModel = hiltViewModel()
             NewsAppMVVMTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel: NewsViewModel = hiltViewModel()
-                    LoadNews(viewModel)
+                    NewsNavGraph(viewModel)
                 }
             }
         }
@@ -71,7 +74,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun LoadNews(viewModel: NewsViewModel) {
+fun LoadNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
     var selectedTab by remember { mutableStateOf<BottomTab>(BottomTab.TodayNews) }
     val tabs = listOf(BottomTab.TodayNews, BottomTab.SavedNews)
     val snackBarHostState = remember { SnackbarHostState() }
@@ -94,23 +97,23 @@ fun LoadNews(viewModel: NewsViewModel) {
                 }
             }, bottomBar = {
             NavigationBar {
-            tabs.forEach { tab ->
-                NavigationBarItem(
-                    selected = selectedTab == BottomTab.TodayNews,
-                    onClick = { selectedTab = tab },
-                    icon = {
-                        Icon(
-                            painter = painterResource(tab.icon),
-                            contentDescription = tab.title
-                        )
-                    },
-                    label = { Text(tab.title) })
+                tabs.forEach { tab ->
+                    NavigationBarItem(
+                        selected = selectedTab == BottomTab.TodayNews,
+                        onClick = { selectedTab = tab },
+                        icon = {
+                            Icon(
+                                painter = painterResource(tab.icon),
+                                contentDescription = tab.title
+                            )
+                        },
+                        label = { Text(tab.title) })
+                }
             }
-        }
-    }){ padding ->
-        Box(modifier = Modifier.padding(padding)){
-            when(selectedTab) {
-                BottomTab.TodayNews -> TodayNews(viewModel)
+        }) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            when (selectedTab) {
+                BottomTab.TodayNews -> TodayNews(viewModel, onNavigateToNewsDetail)
                 BottomTab.SavedNews -> SavedNews()
             }
         }
@@ -118,32 +121,42 @@ fun LoadNews(viewModel: NewsViewModel) {
 }
 
 @Composable
-fun AddToSaved(){
+fun AddToSaved() {
     Text("Saved this news")
 }
 
 @Composable
-fun TodayNews(newsViewModel: NewsViewModel) {
+fun TodayNews(newsViewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
     val newsArticles by newsViewModel.newsItems.observeAsState(emptyList())
 
-    Text("Today's News", textAlign = TextAlign.Center, style = MaterialTheme.typography.titleLarge, modifier = Modifier
-        .padding(all = 20.dp)
-        .fillMaxWidth())
-    LazyColumn(modifier = Modifier.padding(start = 5.dp, top= 70.dp)) {
+    Text(
+        "Today's News",
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier
+            .padding(all = 20.dp)
+            .fillMaxWidth()
+    )
+    LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
         items(items = newsArticles) { newsArticle ->
-            NewsItem(newsArticle)
+            NewsItem(newsArticle, onNavigateToNewsDetail)
         }
     }
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun NewsItem(newsArticle: News) {
+fun NewsItem(newsArticle: News, onNavigateToNewsDetail: (News) -> Unit) {
     val uriHandler = LocalUriHandler.current
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(all = 5.dp)){
-        Text(newsArticle.title, style= MaterialTheme.typography.titleMedium)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 25.dp)
+            .clickable {
+                onNavigateToNewsDetail(newsArticle)
+            }
+    ) {
+        Text(newsArticle.title, style = MaterialTheme.typography.titleMedium)
 //        GlideImage(
 //            model = { newsArticle.urlToImage },
 //            contentDescription = newsArticle.title,
@@ -158,14 +171,49 @@ fun NewsItem(newsArticle: News) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp),
-            contentScale = ContentScale.Crop)
-        Text(newsArticle.url, color=Color(0xFF1A73E8), textDecoration = TextDecoration.Underline, modifier = Modifier.clickable{uriHandler.openUri(newsArticle.url)})
-        Text(newsArticle.description, style = MaterialTheme.typography.bodyMedium)
-        Divider(thickness = 1.dp, modifier = Modifier.padding(top=15.dp))
+            contentScale = ContentScale.Crop
+        )
+        Text(
+            newsArticle.url,
+            color = Color(0xFF1A73E8),
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { uriHandler.openUri(newsArticle.url) })
+        Text(newsArticle.description?:"", style = MaterialTheme.typography.bodyMedium)
+        Divider(thickness = 1.dp, modifier = Modifier.padding(top = 15.dp))
     }
 }
 
 @Composable
-fun SavedNews(){
+fun NewsItemDetail(newsArticle: News) {
+    val uriHandler = LocalUriHandler.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 50.dp)
+    ) {
+        Text(newsArticle.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(modifier= Modifier.height(30.dp))
+        AsyncImage(
+            model = newsArticle.urlToImage,
+            contentDescription = newsArticle.title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier=Modifier.padding(15.dp))
+        Text(
+            newsArticle.url,
+            color = Color(0xFF1A73E8),
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { uriHandler.openUri(newsArticle.url) })
+        Spacer(modifier=Modifier.padding(15.dp))
+        Text(newsArticle.description?:"", style = MaterialTheme.typography.bodyLarge, fontSize = 20.sp)
+        Text(newsArticle.content, style = MaterialTheme.typography.bodyMedium, fontSize = 15.sp)
+    }
+}
+
+@Composable
+fun SavedNews() {
     Text(text = "Saved News")
 }
