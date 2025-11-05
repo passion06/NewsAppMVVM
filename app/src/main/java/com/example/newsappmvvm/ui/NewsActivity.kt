@@ -52,6 +52,7 @@ import com.example.newsappmvvm.view.ui.theme.NewsAppMVVMTheme
 import com.example.newsappmvvm.viewmodel.NewsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.newsappmvvm.ui.navigation.NewsNavGraph
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -77,25 +78,8 @@ class MainActivity : ComponentActivity() {
 fun LoadNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
     var selectedTab by remember { mutableStateOf<BottomTab>(BottomTab.TodayNews) }
     val tabs = listOf(BottomTab.TodayNews, BottomTab.SavedNews)
-    val snackBarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        floatingActionButton =
-            {
-                FloatingActionButton(
-                    onClick = {
-                        viewModel.saveArticle()
-                        coroutineScope.launch { snackBarHostState.showSnackbar("Article Saved") }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.heart),
-                        contentDescription = "favorite",
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }, bottomBar = {
+        bottomBar = {
             NavigationBar {
                 tabs.forEach { tab ->
                     NavigationBarItem(
@@ -184,33 +168,64 @@ fun NewsItem(newsArticle: News, onNavigateToNewsDetail: (News) -> Unit) {
 }
 
 @Composable
-fun NewsItemDetail(newsArticle: News) {
+fun NewsItemDetail(newsViewModel: NewsViewModel, newsArticle: News) {
     val uriHandler = LocalUriHandler.current
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 50.dp)
-    ) {
-        Text(newsArticle.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Spacer(modifier= Modifier.height(30.dp))
-        AsyncImage(
-            model = newsArticle.urlToImage,
-            contentDescription = newsArticle.title,
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState)
+                       },
+        floatingActionButton =
+            {
+                FloatingActionButton(
+                    onClick = {
+                    newsViewModel.saveArticle()
+                    coroutineScope.launch { snackBarHostState.showSnackbar("Article Saved") }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.heart),
+                    contentDescription = "favorite",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }) { padding ->
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier=Modifier.padding(15.dp))
-        Text(
-            newsArticle.url,
-            color = Color(0xFF1A73E8),
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { uriHandler.openUri(newsArticle.url) })
-        Spacer(modifier=Modifier.padding(15.dp))
-        Text(newsArticle.description?:"", style = MaterialTheme.typography.bodyLarge, fontSize = 20.sp)
-        Text(newsArticle.content, style = MaterialTheme.typography.bodyMedium, fontSize = 15.sp)
+                .padding(padding)
+        ) {
+            Text(
+                newsArticle.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+            AsyncImage(
+                model = newsArticle.urlToImage,
+                contentDescription = newsArticle.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.padding(15.dp))
+            Text(
+                newsArticle.url,
+                color = Color(0xFF1A73E8),
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable { uriHandler.openUri(newsArticle.url) })
+            Spacer(modifier = Modifier.padding(15.dp))
+            Text(
+                newsArticle.description ?: "",
+                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 20.sp
+            )
+            Text(newsArticle.content, style = MaterialTheme.typography.bodyMedium, fontSize = 15.sp)
+        }
     }
+
 }
 
 @Composable

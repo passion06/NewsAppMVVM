@@ -35,7 +35,7 @@ fun NewsNavGraph(viewModel: NewsViewModel){
         ) { backStackEntry ->
             val json = backStackEntry.arguments?.getString("news") ?: ""
             val news = Json.decodeFromString<News>(json)
-            NewsItemDetail(news)
+            NewsItemDetail(viewModel, news)
         }
     }
 }
