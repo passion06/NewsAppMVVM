@@ -3,6 +3,7 @@ package com.example.newsappmvvm.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,6 @@ import com.example.newsappmvvm.view.ui.theme.NewsAppMVVMTheme
 import com.example.newsappmvvm.viewmodel.NewsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.newsappmvvm.ui.navigation.NewsNavGraph
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -117,9 +117,11 @@ fun TodayNews(newsViewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Un
         "Today's News",
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
         modifier = Modifier
             .padding(all = 20.dp)
             .fillMaxWidth()
+            .border(width=2.dp,color=Color.Black)
     )
     LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
         items(items = newsArticles) { newsArticle ->
