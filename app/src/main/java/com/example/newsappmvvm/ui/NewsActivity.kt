@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -47,6 +48,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.newsappmvvm.R
+import com.example.newsappmvvm.data.db.SavedNews
 import com.example.newsappmvvm.data.model.News
 import com.example.newsappmvvm.ui.navigation.BottomTab
 import com.example.newsappmvvm.view.ui.theme.NewsAppMVVMTheme
@@ -104,10 +106,6 @@ fun LoadNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
     }
 }
 
-@Composable
-fun AddToSaved() {
-    Text("Saved this news")
-}
 
 @Composable
 fun TodayNews(newsViewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
@@ -121,19 +119,26 @@ fun TodayNews(newsViewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Un
         modifier = Modifier
             .padding(all = 20.dp)
             .fillMaxWidth()
-            .border(width=2.dp,color=Color.Black)
+            .border(width = 2.dp, color = Color.Black)
     )
     LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
         items(items = newsArticles) { newsArticle ->
-            NewsItem(newsArticle, onNavigateToNewsDetail)
+            NewsItem(newsViewModel, newsArticle, onNavigateToNewsDetail, false, null)
         }
     }
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun NewsItem(newsArticle: News, onNavigateToNewsDetail: (News) -> Unit) {
+fun NewsItem(
+    newsViewModel: NewsViewModel,
+    newsArticle: News,
+    onNavigateToNewsDetail: (News) -> Unit,
+    isSavedItem: Boolean,
+    snackbarHostState: SnackbarHostState?
+) {
     val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -164,7 +169,28 @@ fun NewsItem(newsArticle: News, onNavigateToNewsDetail: (News) -> Unit) {
             color = Color(0xFF1A73E8),
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable { uriHandler.openUri(newsArticle.url) })
-        Text(newsArticle.description?:"", style = MaterialTheme.typography.bodyMedium)
+        Text(newsArticle.description ?: "", style = MaterialTheme.typography.bodyMedium)
+        if (isSavedItem) {
+            FloatingActionButton(
+                {
+                    newsViewModel.removeSavedArticle(mapNewsToSavedNews(newsArticle))
+                    coroutineScope.launch {
+                        snackbarHostState?.let {
+                            snackbarHostState.showSnackbar("News Article Removed")
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .padding(15.dp)
+                    .align(Alignment.End)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.outline_delete_24),
+                    contentDescription = "delete",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
         Divider(thickness = 1.dp, modifier = Modifier.padding(top = 15.dp))
     }
 }
@@ -231,20 +257,42 @@ fun NewsItemDetail(newsViewModel: NewsViewModel, newsArticle: News) {
 }
 
 @Composable
-fun SavedNews(viewModel: NewsViewModel, onNavigateToNewsDetail:(News)->Unit) {
+fun SavedNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
+    val snackbarHostState = remember { SnackbarHostState() }
     viewModel.fetchSavedArticles()
     val savedNewsArticles by viewModel.fetchSavedArticles().observeAsState(emptyList())
-    LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
-        items(items = savedNewsArticles) { newsArticle ->
-           val savedNewsArticle = News(
-                title = newsArticle.title,
-                description = newsArticle.description,
-                url = newsArticle.url,
-                urlToImage = newsArticle.urlToImage,
-                date = null,
-                content = null
-            )
-            NewsItem(savedNewsArticle, onNavigateToNewsDetail)
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
+            items(items = savedNewsArticles) { newsArticle ->
+                val savedNewsArticle = mapSavedNewsToNews(newsArticle)
+                NewsItem(
+                    viewModel,
+                    savedNewsArticle,
+                    onNavigateToNewsDetail,
+                    true,
+                    snackbarHostState
+                )
+            }
         }
     }
+}
+
+fun mapSavedNewsToNews(savedNews: SavedNews): News {
+    return News(
+        title = savedNews.title,
+        description = savedNews.description,
+        url = savedNews.url,
+        urlToImage = savedNews.urlToImage,
+        date = null,
+        content = null
+    )
+}
+
+fun mapNewsToSavedNews(news: News): SavedNews {
+    return SavedNews(
+        title = news.title,
+        description = news.description,
+        url = news.url,
+        urlToImage = news.urlToImage
+    )
 }

@@ -51,9 +51,9 @@ class NewsRepository @Inject constructor(
         newsDao.insertNewsArticle(article)
     }
 
-    suspend fun deleteNewsArticle(article: SavedNews) {
+    suspend fun deleteNewsArticle(url: String) {
         // Delete the news article from local database
-        newsDao.deleteNewsArticle(article)
+        newsDao.deleteNewsArticle(url)
     }
 
 }

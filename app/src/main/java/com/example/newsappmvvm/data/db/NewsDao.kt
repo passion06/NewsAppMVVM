@@ -9,8 +9,8 @@ import androidx.room.Query
 interface NewsDao {
     @Insert
     suspend fun insertNewsArticle(savedNews: SavedNews)
-    @Delete
-    suspend fun deleteNewsArticle(savedNews: SavedNews)
+    @Query("delete from savedNews where url = :savedNewsUrl")
+    suspend fun deleteNewsArticle(savedNewsUrl: String)
     @Query("select * from savedNews")
     suspend fun getAllArticles(): List<SavedNews>
 }

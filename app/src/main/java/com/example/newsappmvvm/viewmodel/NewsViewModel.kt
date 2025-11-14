@@ -46,4 +46,10 @@ private val _newsItems = MutableLiveData<List<News>>()
         }
         return savedNewsLiveData
     }
+
+    fun removeSavedArticle(news: SavedNews) {
+        viewModelScope.launch {
+            repository.deleteNewsArticle(news.url)
+        }
+    }
 }
