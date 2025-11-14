@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.newsappmvvm.data.db.SavedNews
 import com.example.newsappmvvm.data.model.News
 import com.example.newsappmvvm.data.repository.NewsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,9 +26,24 @@ private val _newsItems = MutableLiveData<List<News>>()
 
        }
     }
-    fun saveArticle() {
+    fun saveArticle(news: News) {
         viewModelScope.launch {
-            //insert into DB
+            val savedNews = SavedNews(
+                title = news.title,
+                description = news.description,
+                url = news.url,
+                urlToImage = news.urlToImage
+            )
+            repository.saveNewsArticle(savedNews)
         }
+    }
+
+    fun fetchSavedArticles(): LiveData<List<SavedNews>> {
+        val savedNewsLiveData = MutableLiveData<List<SavedNews>>()
+        viewModelScope.launch {
+            val savedArticles = repository.getSavedNews()
+            savedNewsLiveData.postValue(savedArticles)
+        }
+        return savedNewsLiveData
     }
 }

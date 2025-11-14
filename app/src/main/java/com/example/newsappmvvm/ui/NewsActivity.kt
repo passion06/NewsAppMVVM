@@ -98,7 +98,7 @@ fun LoadNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
         Box(modifier = Modifier.padding(padding)) {
             when (selectedTab) {
                 BottomTab.TodayNews -> TodayNews(viewModel, onNavigateToNewsDetail)
-                BottomTab.SavedNews -> SavedNews()
+                BottomTab.SavedNews -> SavedNews(viewModel, onNavigateToNewsDetail)
             }
         }
     }
@@ -182,7 +182,7 @@ fun NewsItemDetail(newsViewModel: NewsViewModel, newsArticle: News) {
             {
                 FloatingActionButton(
                     onClick = {
-                    newsViewModel.saveArticle()
+                    newsViewModel.saveArticle(newsArticle)
                     coroutineScope.launch { snackBarHostState.showSnackbar("Article Saved") }
                 }
             ) {
@@ -224,13 +224,27 @@ fun NewsItemDetail(newsViewModel: NewsViewModel, newsArticle: News) {
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 20.sp
             )
-            Text(newsArticle.content, style = MaterialTheme.typography.bodyMedium, fontSize = 15.sp)
+            Text(newsArticle.content?:"", style = MaterialTheme.typography.bodyMedium, fontSize = 15.sp)
         }
     }
 
 }
 
 @Composable
-fun SavedNews() {
-    Text(text = "Saved News")
+fun SavedNews(viewModel: NewsViewModel, onNavigateToNewsDetail:(News)->Unit) {
+    viewModel.fetchSavedArticles()
+    val savedNewsArticles by viewModel.fetchSavedArticles().observeAsState(emptyList())
+    LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
+        items(items = savedNewsArticles) { newsArticle ->
+           val savedNewsArticle = News(
+                title = newsArticle.title,
+                description = newsArticle.description,
+                url = newsArticle.url,
+                urlToImage = newsArticle.urlToImage,
+                date = null,
+                content = null
+            )
+            NewsItem(savedNewsArticle, onNavigateToNewsDetail)
+        }
+    }
 }

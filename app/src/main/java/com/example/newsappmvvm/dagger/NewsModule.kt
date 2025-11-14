@@ -1,11 +1,16 @@
 package com.example.newsappmvvm.dagger
 
+import android.content.Context
 import android.util.Log
+import androidx.room.Room
+import com.example.newsappmvvm.data.db.NewsDao
+import com.example.newsappmvvm.data.db.NewsDatabase
 import com.example.newsappmvvm.data.network.NewsAPI
 import com.example.newsappmvvm.data.repository.NewsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -17,6 +22,21 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class NewsModule {
+
+    @Provides
+    @Singleton
+    fun provideNewsDao(db: NewsDatabase) = db.newsDao()
+
+    @Provides
+    @Singleton
+    fun provideRoomDatabase(@ApplicationContext context: Context): NewsDatabase {
+        return Room.databaseBuilder(
+            context,
+            NewsDatabase::class.java,
+            "news_database"
+        )
+            .build()
+    }
 
     @Provides
     @Singleton
@@ -48,7 +68,7 @@ class NewsModule {
     }
     @Provides
     @Singleton
-    fun provideNewsRepository(api: NewsAPI): NewsRepository {
-        return NewsRepository(api)
+    fun provideNewsRepository(api: NewsAPI, newsDao: NewsDao): NewsRepository {
+        return NewsRepository(api, newsDao)
     }
 }

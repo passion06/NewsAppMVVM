@@ -1,7 +1,8 @@
 package com.example.newsappmvvm.data.repository
 
 import android.util.Log
-import android.util.Log.e
+import com.example.newsappmvvm.data.db.NewsDao
+import com.example.newsappmvvm.data.db.SavedNews
 import com.example.newsappmvvm.data.model.News
 import com.example.newsappmvvm.data.model.NewsResponse
 import com.example.newsappmvvm.data.network.NewsAPI
@@ -11,7 +12,10 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 
-class NewsRepository @Inject constructor(private val api: NewsAPI) {
+class NewsRepository @Inject constructor(
+    private val api: NewsAPI,
+    private val newsDao: NewsDao
+) {
     suspend fun getNewsHeadlines(): Flow<List<News>> = flow {
         try {
             Log.d("RepositoryCheck", "Repo called")
@@ -22,18 +26,34 @@ class NewsRepository @Inject constructor(private val api: NewsAPI) {
                     description = it.description,
                     url = it.url,
                     urlToImage = it.urlToImage,
-                    date = it.publishedDate?:"unknownDate",
+                    date = it.publishedDate ?: "unknownDate",
                     content = it.content
                 )
             }
             emit(newsList)
-        } catch(e:Exception){
+        } catch (e: Exception) {
             Log.e("RepositoryCheck", "API call failed", e)
             emit(emptyList())
         }
     }.catch {
         Log.e("RepositoryCheck", "Exception", it)
         emit(emptyList())
+    }
+
+    suspend fun getSavedNews(): List<SavedNews> {
+        // Retrieve saved news articles from local database
+        val newsList: List<SavedNews> = newsDao.getAllArticles()
+        return newsList
+    }
+
+    suspend fun saveNewsArticle(article: SavedNews) {
+        // Save the news article to local database
+        newsDao.insertNewsArticle(article)
+    }
+
+    suspend fun deleteNewsArticle(article: SavedNews) {
+        // Delete the news article from local database
+        newsDao.deleteNewsArticle(article)
     }
 
 }
