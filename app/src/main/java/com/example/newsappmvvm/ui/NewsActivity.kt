@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -79,7 +80,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LoadNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
     var selectedTab by remember { mutableStateOf<BottomTab>(BottomTab.TodayNews) }
-    val tabs = listOf(BottomTab.TodayNews, BottomTab.SavedNews)
+    val tabs = listOf(BottomTab.TodayNews, BottomTab.SavedNews, BottomTab.MyNews)
     Scaffold(
         bottomBar = {
             NavigationBar {
@@ -101,6 +102,7 @@ fun LoadNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
             when (selectedTab) {
                 BottomTab.TodayNews -> TodayNews(viewModel, onNavigateToNewsDetail)
                 BottomTab.SavedNews -> SavedNews(viewModel, onNavigateToNewsDetail)
+                BottomTab.MyNews -> MyNews(viewModel)
             }
         }
     }
@@ -295,4 +297,14 @@ fun mapNewsToSavedNews(news: News): SavedNews {
         url = news.url,
         urlToImage = news.urlToImage
     )
+}
+@Composable
+fun MyNews(viewModel:NewsViewModel) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "My News Section Coming Soon!",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+    }
 }
