@@ -27,6 +27,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -262,7 +263,7 @@ fun NewsItemDetail(newsViewModel: NewsViewModel, newsArticle: News) {
 fun SavedNews(viewModel: NewsViewModel, onNavigateToNewsDetail: (News) -> Unit) {
     val snackbarHostState = remember { SnackbarHostState() }
     viewModel.fetchSavedArticles()
-    val savedNewsArticles by viewModel.fetchSavedArticles().observeAsState(emptyList())
+    val savedNewsArticles by viewModel.savedArticles.collectAsState(emptyList())
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         LazyColumn(modifier = Modifier.padding(start = 5.dp, top = 70.dp)) {
             items(items = savedNewsArticles) { newsArticle ->

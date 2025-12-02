@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NewsDao {
@@ -12,5 +13,5 @@ interface NewsDao {
     @Query("delete from savedNews where url = :savedNewsUrl")
     suspend fun deleteNewsArticle(savedNewsUrl: String)
     @Query("select * from savedNews")
-    suspend fun getAllArticles(): List<SavedNews>
+    fun getAllArticles(): Flow<List<SavedNews>>
 }

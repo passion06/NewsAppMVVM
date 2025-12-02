@@ -9,6 +9,10 @@ import com.example.newsappmvvm.data.db.SavedNews
 import com.example.newsappmvvm.data.model.News
 import com.example.newsappmvvm.data.repository.NewsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,6 +20,7 @@ import javax.inject.Inject
 class NewsViewModel @Inject constructor(var repository: NewsRepository): ViewModel() {
 private val _newsItems = MutableLiveData<List<News>>()
     val newsItems: LiveData<List<News>> = _newsItems
+     var savedArticles:Flow<List<SavedNews>> = emptyFlow()
 
     init {
        viewModelScope.launch {
@@ -38,13 +43,14 @@ private val _newsItems = MutableLiveData<List<News>>()
         }
     }
 
-    fun fetchSavedArticles(): LiveData<List<SavedNews>> {
-        val savedNewsLiveData = MutableLiveData<List<SavedNews>>()
+    fun fetchSavedArticles() {
         viewModelScope.launch {
-            val savedArticles = repository.getSavedNews()
-            savedNewsLiveData.postValue(savedArticles)
+            savedArticles = repository.getSavedNews()
+            savedArticles.shareIn(
+                viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000)
+            )
         }
-        return savedNewsLiveData
     }
 
     fun removeSavedArticle(news: SavedNews) {

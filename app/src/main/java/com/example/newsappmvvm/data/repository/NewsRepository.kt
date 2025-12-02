@@ -40,11 +40,9 @@ class NewsRepository @Inject constructor(
         emit(emptyList())
     }
 
-    suspend fun getSavedNews(): List<SavedNews> {
+    fun getSavedNews(): Flow<List<SavedNews>> =
         // Retrieve saved news articles from local database
-        val newsList: List<SavedNews> = newsDao.getAllArticles()
-        return newsList
-    }
+        newsDao.getAllArticles()
 
     suspend fun saveNewsArticle(article: SavedNews) {
         // Save the news article to local database
