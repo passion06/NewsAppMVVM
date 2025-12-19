@@ -159,6 +159,7 @@ fun NewsItem(
 //                .height(200.dp),
 //            contentScale = ContentScale.Crop
 //        )
+        Spacer(modifier = Modifier.height(30.dp))
         AsyncImage(
             model = newsArticle.urlToImage,
             contentDescription = newsArticle.title,
@@ -167,11 +168,13 @@ fun NewsItem(
                 .height(200.dp),
             contentScale = ContentScale.Crop
         )
+        Spacer(modifier = Modifier.height(30.dp))
         Text(
             newsArticle.url,
             color = Color(0xFF1A73E8),
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable { uriHandler.openUri(newsArticle.url) })
+        Spacer(modifier = Modifier.height(15.dp))
         Text(newsArticle.description ?: "", style = MaterialTheme.typography.bodyMedium)
         if (isSavedItem) {
             FloatingActionButton(
